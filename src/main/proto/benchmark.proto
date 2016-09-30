@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "uschi2000.benchmark";
+option java_outer_classname = "BenchmarkProto";
+option objc_class_prefix = "BM";
+
+package uschi2000.benchmark;
+
+service Benchmark {
+  rpc Query (BenchmarkRequest) returns (BenchmarkReply) {}
+}
+
+message BenchmarkRequest {
+  string name = 1;
+}
+
+message BenchmarkReply {
+  string message = 1;
+}

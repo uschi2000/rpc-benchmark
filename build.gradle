@@ -11,15 +11,18 @@ buildscript {
 }
 
 repositories {
-  mavenCentral()
-  mavenLocal()
+  jcenter()
 }
 
-def grpcVersion = '1.0.1'
 dependencies {
   compile "io.grpc:grpc-netty:${grpcVersion}"
   compile "io.grpc:grpc-protobuf:${grpcVersion}"
   compile "io.grpc:grpc-stub:${grpcVersion}"
+  compile "com.palantir.remoting1:ssl-config:${httpRemotingVersion}"
+
+  testCompile "junit:junit:${junitVersion}"
+  testCompile "org.mockito:mockito-core:${mockitoVersion}"
+  testCompile "org.assertj:assertj-core:${assertjVersion}"
 }
 
 protobuf {
