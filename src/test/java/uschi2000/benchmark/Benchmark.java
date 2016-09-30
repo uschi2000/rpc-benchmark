@@ -28,6 +28,6 @@ public class Benchmark {
 
     @Test
     public void testSanity() {
-        assertThat(client.query("foo")).isEqualTo("foo");
+        assertThat(client.query(3)).isEqualTo("foofoofoo");
     }
 }

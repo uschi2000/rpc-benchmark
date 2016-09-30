@@ -35,11 +35,8 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 public class GrpcClient {
-    private static final Logger logger = Logger.getLogger(GrpcClient.class.getName());
-
     private final ManagedChannel channel;
     private final BenchmarkGrpc.BenchmarkBlockingStub blockingStub;
 
@@ -59,8 +56,10 @@ public class GrpcClient {
         channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
     }
 
-    public String query(String name) {
-        BenchmarkRequest request = BenchmarkRequest.newBuilder().setName(name).build();
+    public String query(int num) {
+        BenchmarkRequest request = BenchmarkRequest.newBuilder()
+                .setNum(num)
+                .build();
         BenchmarkReply response;
         response = blockingStub.query(request);
         return response.getMessage();

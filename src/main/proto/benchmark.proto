@@ -12,7 +12,7 @@ service Benchmark {
 }
 
 message BenchmarkRequest {
-  string name = 1;
+  int32 num = 1;
 }
 
 message BenchmarkReply {

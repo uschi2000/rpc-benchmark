@@ -31,6 +31,7 @@
 
 package uschi2000.benchmark;
 
+import com.google.common.base.Strings;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
@@ -75,7 +76,9 @@ public class GrpcServer {
 
         @Override
         public void query(BenchmarkRequest req, StreamObserver<BenchmarkReply> responseObserver) {
-            BenchmarkReply reply = BenchmarkReply.newBuilder().setMessage(req.getName()).build();
+            BenchmarkReply reply = BenchmarkReply.newBuilder()
+                    .setMessage(Strings.repeat("foo", req.getNum()))
+                    .build();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
         }
