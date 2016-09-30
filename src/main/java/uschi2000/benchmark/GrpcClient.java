@@ -56,12 +56,17 @@ public class GrpcClient {
         channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
     }
 
-    public String query(int num) {
+    public BenchmarkData query(int numStrings, int numInts, String prefix) {
         BenchmarkRequest request = BenchmarkRequest.newBuilder()
-                .setNum(num)
+                .setNumStrings(numStrings)
+                .setNumInts(numInts)
+                .setPrefix(prefix)
                 .build();
         BenchmarkReply response;
         response = blockingStub.query(request);
-        return response.getMessage();
+        return ImmutableBenchmarkData.builder()
+                .addAllStrings(response.getStringsList())
+                .addAllInts(response.getIntsList())
+                .build();
     }
 }

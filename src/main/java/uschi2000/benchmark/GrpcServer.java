@@ -31,13 +31,15 @@
 
 package uschi2000.benchmark;
 
-import com.google.common.base.Strings;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 
 import java.io.IOException;
 import java.util.logging.Logger;
+
+import static uschi2000.benchmark.Generators.generateInts;
+import static uschi2000.benchmark.Generators.generateStrings;
 
 public class GrpcServer {
     private static final Logger logger = Logger.getLogger(GrpcServer.class.getName());
@@ -77,7 +79,8 @@ public class GrpcServer {
         @Override
         public void query(BenchmarkRequest req, StreamObserver<BenchmarkReply> responseObserver) {
             BenchmarkReply reply = BenchmarkReply.newBuilder()
-                    .setMessage(Strings.repeat("foo", req.getNum()))
+                    .addAllStrings(generateStrings(req.getPrefix(), req.getNumStrings()))
+                    .addAllInts(generateInts(req.getNumInts()))
                     .build();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();

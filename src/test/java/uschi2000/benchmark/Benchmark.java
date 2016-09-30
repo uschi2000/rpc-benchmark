@@ -28,6 +28,10 @@ public class Benchmark {
 
     @Test
     public void testSanity() {
-        assertThat(client.query(3)).isEqualTo("foofoofoo");
+        assertThat(client.query(2, 3, "foo")).isEqualTo(
+                ImmutableBenchmarkData.builder()
+                        .addStrings("foo1", "foo2")
+                        .addInts(1, 2, 3)
+                        .build());
     }
 }

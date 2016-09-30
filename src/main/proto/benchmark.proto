@@ -12,9 +12,12 @@ service Benchmark {
 }
 
 message BenchmarkRequest {
-  int32 num = 1;
+  int32 numStrings = 1;
+  int32 numInts = 2;
+  string prefix = 3;
 }
 
 message BenchmarkReply {
-  string message = 1;
+  repeated string strings = 1;
+  repeated int32 ints = 2;
 }
