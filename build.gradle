@@ -21,13 +21,15 @@ dependencies {
   compile "io.grpc:grpc-netty:${grpcVersion}"
   compile "io.grpc:grpc-protobuf:${grpcVersion}"
   compile "io.grpc:grpc-stub:${grpcVersion}"
-  compile "com.palantir.remoting1:ssl-config:${httpRemotingVersion}"
+  compile "io.dropwizard:dropwizard-core:${dropwizardVersion}"
 
+  testCompile "com.palantir.remoting1:jaxrs-clients:${httpRemotingVersion}"
   testCompile "junit:junit:${junitVersion}"
-  testCompile "org.mockito:mockito-core:${mockitoVersion}"
   testCompile "org.assertj:assertj-core:${assertjVersion}"
+  testCompile "org.mockito:mockito-core:${mockitoVersion}"
   testCompile "org.openjdk.jmh:jmh-core:${jmhVersion}"
   testCompile "org.openjdk.jmh:jmh-generator-annprocess:${jmhVersion}"
+  testCompile "io.dropwizard:dropwizard-testing:${dropwizardVersion}"
 }
 
 protobuf {
