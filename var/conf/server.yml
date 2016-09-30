@@ -63,3 +63,4 @@ server:
   type: default
 logging:
   appenders: []
+  level: ERROR

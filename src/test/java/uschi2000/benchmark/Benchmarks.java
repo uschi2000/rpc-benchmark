@@ -13,8 +13,8 @@ import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 
 @OutputTimeUnit(TimeUnit.SECONDS)
-@Warmup(iterations = 10, time = 5)
-@Measurement(iterations = 10, time = 5)
+@Warmup(iterations = 6, time = 3)
+@Measurement(iterations = 6, time = 3)
 @Fork(1)
 public class Benchmarks {
 
