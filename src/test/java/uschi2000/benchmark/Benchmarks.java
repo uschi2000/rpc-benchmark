@@ -12,9 +12,10 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 
-@OutputTimeUnit(TimeUnit.SECONDS)
+@OutputTimeUnit(TimeUnit.MILLISECONDS)
 @Warmup(iterations = 6, time = 3)
 @Measurement(iterations = 6, time = 3)
+@BenchmarkMode(Mode.AverageTime)
 @Fork(1)
 public class Benchmarks {
 
