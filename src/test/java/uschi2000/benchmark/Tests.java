@@ -8,7 +8,7 @@ import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class Benchmark {
+public class Tests {
 
     private GrpcServer server;
     private GrpcClient client;
@@ -17,7 +17,7 @@ public class Benchmark {
     public void before() throws IOException {
         server = new GrpcServer(50001);
         server.start();
-        client = new GrpcClient("localhost", 50001);
+        client = new GrpcClient("localhost", 50001, false);
     }
 
     @After
@@ -28,10 +28,10 @@ public class Benchmark {
 
     @Test
     public void testSanity() {
-        assertThat(client.query(2, 3, "foo")).isEqualTo(
+        assertThat(client.query(2, 4)).isEqualTo(
                 ImmutableBenchmarkData.builder()
-                        .addStrings("foo1", "foo2")
-                        .addInts(1, 2, 3)
+                        .addStrings(Generators.PREFIX + "0", Generators.PREFIX + "1")
+                        .addInts(0, 1, 2, 3)
                         .build());
     }
 }

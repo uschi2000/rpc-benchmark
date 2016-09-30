@@ -32,7 +32,7 @@
 package uschi2000.benchmark;
 
 import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
+import io.grpc.netty.NettyChannelBuilder;
 
 import java.util.concurrent.TimeUnit;
 
@@ -43,11 +43,12 @@ public class GrpcClient {
     /**
      * Construct client connecting to BenchmarkWorld server at {@code host:port}.
      */
-    public GrpcClient(String host, int port) {
-        channel = ManagedChannelBuilder.forAddress(host, port)
+    public GrpcClient(String host, int port, boolean useSsl) {
+        channel = NettyChannelBuilder.forAddress(host, port)
                 // Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid
                 // needing certificates.
-                .usePlaintext(true)
+                .usePlaintext(!useSsl)
+                .maxMessageSize(99689791)
                 .build();
         blockingStub = BenchmarkGrpc.newBlockingStub(channel);
     }
@@ -56,11 +57,10 @@ public class GrpcClient {
         channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
     }
 
-    public BenchmarkData query(int numStrings, int numInts, String prefix) {
+    public BenchmarkData query(int numStrings, int numInts) {
         BenchmarkRequest request = BenchmarkRequest.newBuilder()
                 .setNumStrings(numStrings)
                 .setNumInts(numInts)
-                .setPrefix(prefix)
                 .build();
         BenchmarkReply response;
         response = blockingStub.query(request);

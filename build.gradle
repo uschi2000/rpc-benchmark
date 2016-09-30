@@ -26,6 +26,8 @@ dependencies {
   testCompile "junit:junit:${junitVersion}"
   testCompile "org.mockito:mockito-core:${mockitoVersion}"
   testCompile "org.assertj:assertj-core:${assertjVersion}"
+  testCompile "org.openjdk.jmh:jmh-core:${jmhVersion}"
+  testCompile "org.openjdk.jmh:jmh-generator-annprocess:${jmhVersion}"
 }
 
 protobuf {

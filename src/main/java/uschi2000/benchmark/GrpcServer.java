@@ -38,9 +38,6 @@ import io.grpc.stub.StreamObserver;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-import static uschi2000.benchmark.Generators.generateInts;
-import static uschi2000.benchmark.Generators.generateStrings;
-
 public class GrpcServer {
     private static final Logger logger = Logger.getLogger(GrpcServer.class.getName());
 
@@ -53,7 +50,7 @@ public class GrpcServer {
 
     public void start() throws IOException {
         server = ServerBuilder.forPort(port)
-                .addService(new GreeterImpl())
+                .addService(new BenchmarkImpl())
                 .build()
                 .start();
         logger.info("Server started, listening on " + port);
@@ -74,13 +71,13 @@ public class GrpcServer {
         }
     }
 
-    private class GreeterImpl extends BenchmarkGrpc.BenchmarkImplBase {
+    private class BenchmarkImpl extends BenchmarkGrpc.BenchmarkImplBase {
 
         @Override
         public void query(BenchmarkRequest req, StreamObserver<BenchmarkReply> responseObserver) {
             BenchmarkReply reply = BenchmarkReply.newBuilder()
-                    .addAllStrings(generateStrings(req.getPrefix(), req.getNumStrings()))
-                    .addAllInts(generateInts(req.getNumInts()))
+                    .addAllStrings(Generators.STRINGS.get(req.getNumStrings()))
+                    .addAllInts(Generators.INTS.get(req.getNumInts()))
                     .build();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
