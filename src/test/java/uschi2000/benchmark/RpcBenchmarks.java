@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 @Measurement(iterations = 6, time = 3)
 @BenchmarkMode(Mode.AverageTime)
 @Fork(1)
-public class Benchmarks {
+public class RpcBenchmarks {
 
     @State(Scope.Thread)
     public static class Services {

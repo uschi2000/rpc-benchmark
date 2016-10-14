@@ -30,6 +30,7 @@ dependencies {
   testCompile "org.openjdk.jmh:jmh-core:${jmhVersion}"
   testCompile "org.openjdk.jmh:jmh-generator-annprocess:${jmhVersion}"
   testCompile "io.dropwizard:dropwizard-testing:${dropwizardVersion}"
+  testCompile "com.google.code.gson:gson:${gsonVersion}"
 }
 
 protobuf {
