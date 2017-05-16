@@ -1,16 +1,26 @@
 package uschi2000.benchmark;
 
-import com.palantir.remoting1.clients.ClientConfig;
-import com.palantir.remoting1.config.ssl.SslConfiguration;
-import com.palantir.remoting1.config.ssl.SslSocketFactories;
-import com.palantir.remoting1.jaxrs.JaxRsClient;
-import io.dropwizard.Configuration;
-import io.dropwizard.testing.DropwizardTestSupport;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
+import com.palantir.remoting2.clients.CipherSuites;
+import com.palantir.remoting2.config.service.ServiceConfiguration;
+import com.palantir.remoting2.config.ssl.SslConfiguration;
+import com.palantir.remoting2.config.ssl.SslSocketFactories;
+import com.palantir.remoting2.ext.jackson.ObjectMappers;
+import com.palantir.remoting2.http2.Http2Agent;
+import com.palantir.remoting2.jaxrs.JaxRsClient;
+import okhttp3.ConnectionSpec;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.TlsVersion;
 import org.openjdk.jmh.annotations.*;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @Warmup(iterations = 6, time = 3)
@@ -18,38 +28,52 @@ import java.util.concurrent.TimeUnit;
 @BenchmarkMode(Mode.AverageTime)
 @Fork(1)
 public class RpcBenchmarks {
+    private static final ObjectMapper mapper = ObjectMappers.newClientObjectMapper();
 
     @State(Scope.Thread)
     public static class Services {
         GrpcServer grpcServer;
-        DropwizardTestSupport<Configuration> dropwizardServer;
-        DropwizardServer.BenchmarkService jaxrsHttpClient;
-        DropwizardServer.BenchmarkService jaxrsHttpsClient;
+        WitchcraftServer witchcraftServer;
+        WitchcraftServer.BenchmarkService jaxssClient;
+        OkHttpClient okhttpClient;
 
         @Setup
         public void setup() throws IOException {
+            Http2Agent.install();
             grpcServer = new GrpcServer(50001);
             grpcServer.start();
-            dropwizardServer = new DropwizardTestSupport<>(DropwizardServer.class, "var/conf/server.yml");
-            dropwizardServer.before();
-            jaxrsHttpClient = JaxRsClient.builder().build(
-                    DropwizardServer.BenchmarkService.class,
+            witchcraftServer = WitchcraftServer.start(50002);
+            SslConfiguration sslConfig = SslConfiguration.of(Paths.get("var/security/truststore.jks"));
+            jaxssClient = JaxRsClient.create(
+                    WitchcraftServer.BenchmarkService.class,
                     "agent",
-                    "http://localhost:51001/benchmark/api");
-            ClientConfig httpsConfig = ClientConfig.builder()
-                    .trustContext(SslSocketFactories.createTrustContext(
-                            SslConfiguration.of(Paths.get("var/security/truststore.jks"))))
+                    ServiceConfiguration.builder()
+                            .addUris("https://localhost:50002/api")
+                            .security(Optional.of(sslConfig))
+                            .enableGcmCipherSuites(true)
+                            .build());
+            okhttpClient = new OkHttpClient.Builder()
+                    .sslSocketFactory(SslSocketFactories.createSslSocketFactory(sslConfig),
+                            SslSocketFactories.createX509TrustManager(sslConfig))
+                    .connectionSpecs(createConnectionSpecs(true))
                     .build();
-            jaxrsHttpsClient = JaxRsClient.builder(httpsConfig).build(
-                    DropwizardServer.BenchmarkService.class,
-                    "agent",
-                    "https://localhost:51002/benchmark/api");
+        }
+
+        private static ImmutableList<ConnectionSpec> createConnectionSpecs(boolean enableGcmCipherSuites) {
+            return ImmutableList.of(
+                    new ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS)
+                            .tlsVersions(TlsVersion.TLS_1_2)
+                            .cipherSuites(enableGcmCipherSuites
+                                    ? CipherSuites.allCipherSuites()
+                                    : CipherSuites.fastCipherSuites())
+                            .build(),
+                    ConnectionSpec.CLEARTEXT);
         }
 
         @TearDown
         public void after() throws InterruptedException {
             grpcServer.stop();
-            dropwizardServer.after();
+            witchcraftServer.stop();
         }
     }
 
@@ -57,12 +81,9 @@ public class RpcBenchmarks {
     public static class Data {
         GrpcClient grpcClient;
 
-        @Param({"1", "32", "1024", "32768", "1048576"})
-        int scale;
-
-        // TODO(rfink) test with TLS
-        @Param({"false"})
-        boolean useSsl;
+        @Param({"1", "1024", "1048576"})
+//        @Param({"1", "32", "1024", "32768", "1048576"})
+                int scale;
 
         int numStrings;
         int numInts;
@@ -71,7 +92,7 @@ public class RpcBenchmarks {
         public void setup() {
             numStrings = scale;
             numInts = scale;
-            grpcClient = new GrpcClient("localhost", 50001, useSsl);
+            grpcClient = new GrpcClient("localhost", 50001, false);
         }
 
         @TearDown
@@ -80,14 +101,26 @@ public class RpcBenchmarks {
         }
     }
 
-    @Benchmark
+    //    @Benchmark
     public void benchmarkGrpc(Services services, Data data) {
         data.grpcClient.query(data.numStrings, data.numInts);
     }
 
     @Benchmark
     public void benchmarkDropwizardJaxRs(Services services, Data data) {
-        DropwizardServer.BenchmarkService service = data.useSsl ? services.jaxrsHttpsClient : services.jaxrsHttpClient;
-        service.query(data.numStrings, data.numInts);
+        assertThat(services.jaxssClient.query(data.numStrings, data.numInts).ints()).hasSize(data.numInts);
+    }
+
+    @Benchmark
+    public void benchmarkOkHttp(Services services, Data data) throws IOException {
+        assertThat(execOkHttp(services.okhttpClient, data.numStrings, data.numInts).ints()).hasSize(data.numInts);
+    }
+
+    private BenchmarkData execOkHttp(OkHttpClient client, int numStrings, int numInts) throws IOException {
+        String result = client.newCall(new Request.Builder()
+                .url(String.format("https://localhost:50002/api/query/%d/%d", numStrings, numInts))
+                .get()
+                .build()).execute().body().string();
+        return mapper.readValue(result, BenchmarkData.class);
     }
 }

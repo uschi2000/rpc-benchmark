@@ -14,22 +14,21 @@ buildscript {
 }
 
 repositories {
-  jcenter()
+  maven { url 'https://artifactory.palantir.build/artifactory/all-jar' }
 }
 
 dependencies {
   compile "io.grpc:grpc-netty:${grpcVersion}"
   compile "io.grpc:grpc-protobuf:${grpcVersion}"
   compile "io.grpc:grpc-stub:${grpcVersion}"
-  compile "io.dropwizard:dropwizard-core:${dropwizardVersion}"
+  compile "com.palantir.witchcraft:witchcraft-core:${witchcraftVersion}"
 
-  testCompile "com.palantir.remoting1:jaxrs-clients:${httpRemotingVersion}"
+  testCompile "com.palantir.remoting2:jaxrs-clients:${httpRemotingVersion}"
   testCompile "junit:junit:${junitVersion}"
   testCompile "org.assertj:assertj-core:${assertjVersion}"
   testCompile "org.mockito:mockito-core:${mockitoVersion}"
   testCompile "org.openjdk.jmh:jmh-core:${jmhVersion}"
   testCompile "org.openjdk.jmh:jmh-generator-annprocess:${jmhVersion}"
-  testCompile "io.dropwizard:dropwizard-testing:${dropwizardVersion}"
   testCompile "com.google.code.gson:gson:${gsonVersion}"
 }
 
