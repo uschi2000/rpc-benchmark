@@ -49,6 +49,7 @@ public final class WitchcraftServer {
         @Override
         public BenchmarkData query(int numStrings, int numInts) {
             return ImmutableBenchmarkData.builder()
+                    .authHeader("my-auth-header")
                     .addAllStrings(Generators.STRINGS.get(numStrings))
                     .addAllInts(Generators.INTS.get(numInts))
                     .build();

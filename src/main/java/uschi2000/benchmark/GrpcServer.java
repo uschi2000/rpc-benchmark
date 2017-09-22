@@ -31,8 +31,7 @@
 
 package uschi2000.benchmark;
 
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
+import io.grpc.*;
 import io.grpc.stub.StreamObserver;
 
 import java.io.IOException;
@@ -50,7 +49,15 @@ public class GrpcServer {
 
     public void start() throws IOException {
         server = ServerBuilder.forPort(port)
-                .addService(new BenchmarkImpl())
+                .addService(ServerInterceptors.intercept(new BenchmarkImpl(), new ServerInterceptor() {
+                    @Override
+                    public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(
+                            ServerCall<ReqT, RespT> call, Metadata headers, ServerCallHandler<ReqT, RespT> next) {
+                        String authHeader = headers.get(AuthHeaders.AUTH_HEADER);
+                        Context context = Context.current().withValue(AuthHeaders.BEARER_TOKEN, authHeader);
+                        return Contexts.interceptCall(context, call, headers, next);
+                    }
+                }))
                 .build()
                 .start();
         logger.info("Server started, listening on " + port);
@@ -72,7 +79,9 @@ public class GrpcServer {
 
         @Override
         public void query(BenchmarkRequest req, StreamObserver<BenchmarkReply> responseObserver) {
+            String authHeader = AuthHeaders.BEARER_TOKEN.get(Context.current());
             BenchmarkReply reply = BenchmarkReply.newBuilder()
+                    .setMyAuthHeader(authHeader)
                     .addAllStrings(Generators.STRINGS.get(req.getNumStrings()))
                     .addAllInts(Generators.INTS.get(req.getNumInts()))
                     .build();

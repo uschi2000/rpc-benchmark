@@ -10,6 +10,9 @@ import java.util.List;
 @JsonSerialize(as = ImmutableBenchmarkData.class)
 @JsonDeserialize(as = ImmutableBenchmarkData.class)
 public interface BenchmarkData {
+
+    String authHeader();
+
     List<String> strings();
 
     List<Integer> ints();

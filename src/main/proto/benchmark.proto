@@ -20,4 +20,5 @@ message BenchmarkRequest {
 message BenchmarkReply {
   repeated string strings = 1;
   repeated int32 ints = 2;
+  string myAuthHeader = 3;
 }

@@ -32,6 +32,7 @@
 package uschi2000.benchmark;
 
 import io.grpc.ManagedChannel;
+import io.grpc.Metadata;
 import io.grpc.netty.NettyChannelBuilder;
 
 import java.util.concurrent.TimeUnit;
@@ -50,7 +51,12 @@ public class GrpcClient {
                 .usePlaintext(!useSsl)
                 .maxMessageSize(99689791)
                 .build();
-        blockingStub = BenchmarkGrpc.newBlockingStub(channel);
+        blockingStub = BenchmarkGrpc.newBlockingStub(channel)
+                .withCallCredentials((method, attrs, appExecutor, applier) -> {
+                    Metadata headers = new Metadata();
+                    headers.put(AuthHeaders.AUTH_HEADER, "my-auth-header");
+                    applier.apply(headers);
+                });
     }
 
     public void shutdown() throws InterruptedException {
@@ -65,6 +71,7 @@ public class GrpcClient {
         BenchmarkReply response;
         response = blockingStub.query(request);
         return ImmutableBenchmarkData.builder()
+                .authHeader(response.getMyAuthHeader())
                 .addAllStrings(response.getStringsList())
                 .addAllInts(response.getIntsList())
                 .build();
