@@ -72,6 +72,7 @@ public class Tests {
     @Test
     public void testSanity() throws IOException {
         ImmutableBenchmarkData expected = ImmutableBenchmarkData.builder()
+                .authHeader("my-auth-header")
                 .addStrings(Generators.PREFIX + "0", Generators.PREFIX + "1")
                 .addInts(0, 1, 2, 3)
                 .build();
